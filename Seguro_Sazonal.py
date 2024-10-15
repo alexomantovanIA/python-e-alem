@@ -1,4 +1,28 @@
+# Importação dos módulos
+import os
+import oracledb
+import pandas as pd
 import json
+import cx_Oracle
+import pandas
+
+# Try para tentativa de Conexão com o Banco de Dados
+try:
+    # Efetua a conexão com o Usuário no servidor (Insira aqui seu usuário e senha)
+    conn = oracledb.connect(user='RMXXXXXX', password="XXXXXX", dsn='oracle.fiap.com.br:1521/ORCL')
+    # Cria as instruções para cada módulo
+    inst_cadastro = conn.cursor()
+    inst_consulta = conn.cursor()
+    inst_alteracao = conn.cursor()
+    inst_exclusao = conn.cursor()
+except Exception as e:
+    # Informa o erro
+    print("Erro: ", e)
+    # Flag para não executar a Aplicação
+    conexao = False
+else:
+    # Flag para executar a Aplicação
+    conexao = True
 
 def calcular_valor_cobertura(custo_anual, tipo_cobertura):
     if tipo_cobertura == "desastres_climaticos":
@@ -147,11 +171,103 @@ def contratar_seguro():
         elif resultado_exportacao:
             return True  # Indica que o usuário deseja reiniciar o programa
 
+def cadastrar_simulacao(conn, atividade, custo_anual, tipo_cobertura, valor_cobertura, premio_anual, premio_mensal, mes, regiao):
+    try:
+        cursor = conn.cursor()
+        sql = """INSERT INTO SIMULACOES (ATIVIDADE, CUSTO_ANUAL, TIPO_COBERTURA, VALOR_COBERTURA, PREMIO_ANUAL, PREMIO_MENSAL, MES, REGIAO)
+                 VALUES (:1, :2, :3, :4, :5, :6, :7, :8)"""
+        cursor.execute(sql, (atividade, custo_anual, tipo_cobertura, valor_cobertura, premio_anual, premio_mensal, mes, regiao))
+        conn.commit()
+        print("Atividade cadastrada com sucesso!")
+    except Exception as e:
+        print("Erro ao cadastrar Atividade:", e)
+
+def consultar_simulacoes(conn):
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM SIMULACOES")
+        rows = cursor.fetchall()
+        for row in rows:
+            print(row)
+    except Exception as e:
+        print("Erro ao consultar Atividade:", e)
+
+def alterar_simulacao(conn, id_simulacao, novo_valor_cobertura):
+    try:
+        cursor = conn.cursor()
+        sql = "UPDATE SIMULACOES SET VALOR_COBERTURA = :1 WHERE ID = :2"
+        cursor.execute(sql, (novo_valor_cobertura, id_simulacao))
+        conn.commit()
+        print("Atividade alterada com sucesso!")
+    except Exception as e:
+        print("Erro ao alterar Atividade:", e)
+
+def excluir_simulacao(conn, id_simulacao):
+    try:
+        cursor = conn.cursor()
+        sql = "DELETE FROM SIMULACOES WHERE ID = :1"
+        cursor.execute(sql, (id_simulacao,))
+        conn.commit()
+        print("Atividade excluída com sucesso!")
+    except Exception as e:
+        print("Erro ao excluir Atividade:", e)
+
+
+def menu_crud(conn):
+    while True:
+        opcoes_crud = ["Cadastrar Atividade", "Consultar Atividade", "Alterar Atividade", "Excluir Atividade",
+                       "Voltar ao Menu Principal"]
+        escolha = mostrar_menu(opcoes_crud, "\nEste é o 'Controle de Sugestões'. As propostas inseridas serão estudadas pela gestão:")
+
+        if escolha == "Cadastrar Atividade":
+            # Solicitar dados para cadastro
+            atividade = input("Atividade: ")
+            custo_anual = float(input("Custo Anual: "))
+            tipo_cobertura = input("Tipo de Cobertura: ")
+            valor_cobertura = float(input("Valor da Cobertura: "))
+            premio_anual = float(input("Prêmio Anual: "))
+            premio_mensal = float(input("Prêmio Mensal: "))
+            mes = int(input("Mês: "))
+            regiao = input("Região: ")
+            cadastrar_simulacao(conn, atividade, custo_anual, tipo_cobertura, valor_cobertura, premio_anual,
+                                premio_mensal, mes, regiao)
+
+        elif escolha == "Consultar Atividade":
+            consultar_simulacoes(conn)
+
+        elif escolha == "Alterar Atividade":
+            id_simulacao = int(input("ID da Atividade a ser alterada: "))
+            novo_valor_cobertura = float(input("Novo Valor da Cobertura: "))
+            alterar_simulacao(conn, id_simulacao, novo_valor_cobertura)
+
+        elif escolha == "Excluir Atividade":
+            id_simulacao = int(input("ID da Atividade a ser excluída: "))
+            excluir_simulacao(conn, id_simulacao)
+
+        elif escolha == "Voltar ao Menu Principal":
+            break
+
+
+# Definição da função main
 def main():
     while True:
-        if contratar_seguro():
-            continue  # Reinicia o programa se o usuário escolher retornar ao menu principal
-        break  # Sai do loop principal se o usuário não escolher retornar ao menu principal
+        # Menu principal do programa
+        atividades = ["Contratar Seguro", "Sugestões de Seguro", "Sair do Programa"]
+        escolha = mostrar_menu(atividades, "\nEscolha uma opção:")
 
-# Principal
-main()
+        if escolha == "Contratar Seguro":
+            contratar_seguro()
+        elif escolha == "Sugestões de Seguro":
+            menu_crud(conn)
+        elif escolha == "Sair do Programa":
+            print("Você escolheu sair do programa.")
+            # Chama o menu CRUD antes de sair
+            menu_crud(conn)
+            print("Saindo do programa...")
+            break
+        else:
+            print("Opção inválida. Tente novamente.\n")
+
+# Chamada da função principal
+if __name__ == "__main__":
+    main()
