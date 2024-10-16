@@ -20,7 +20,7 @@
 ### Tutor(a) 
 - <a href="https://www.linkedin.com/company/inova-fusca">Lucas Gomes Moreira</a>
 ### Coordenador(a)
-- <a href="https://www.linkedin.com/company/inova-fusca">Nome do Coordenador</a>
+- <a href="https://www.linkedin.com/company/">André Godoi</a>
 
 
 ## 📜 Descrição
@@ -48,8 +48,11 @@ Dentre os arquivos e pastas presentes na raiz do projeto, definem-se:
 
 ## 🔧 Como executar o código
 
-1. Configure as credenciais do banco de dados.
-2. Execute o script principal
+1. Abra o script do programa "Seguro_Sazonal.py"
+2. Configure as credenciais do banco de dados no local indicado.
+3. Baixe e configure o Oracle SQL Developer com suas credenciais de conexão. 
+2. Execute o "Script_Tabela_Simulacoes" no Oracle SQL Developer.
+3. Execute o programa "Seguro_Sazonal.py"
 
 
 ### Funcionalidades
